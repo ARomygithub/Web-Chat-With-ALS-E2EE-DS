@@ -1,4 +1,18 @@
 const User = require('./User');
+const { PrismaClient } = require('@prisma/client')
+const prisma = new PrismaClient()
+
+async function prepareALS() {
+  // do ECDH
+}
+
+// prisma.user.create({
+//   data: {
+//     addr: '123.456.789.123:2040',
+//     name: 'Alice',
+//     sharedKey: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+//   }
+// })
 
 module.exports = (io) => {
 
@@ -10,6 +24,7 @@ module.exports = (io) => {
 
     let connectedUser = new User(socket.id, false);
     User.users.set(socket.id, connectedUser);
+    console.log(socket.handshake.address)
 
     // Login
     socket.on('login', (fullName) => {
