@@ -1,10 +1,8 @@
 const User = require('./User');
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
-
-async function prepareALS() {
-  // do ECDH
-}
+const { getPrimeECDH, Curve, Point, scalarMul } = require('../lib/tools/tools.js');
+const { randBetween } = require('bigint-crypto-utils');
 
 // prisma.user.create({
 //   data: {
@@ -14,14 +12,49 @@ async function prepareALS() {
 //   }
 // })
 
+const pointToKey = (point) => {
+  let x = point.x.toString(16).padStart(64, '0');
+  let y = point.y.toString(16).padStart(64, '0');
+  return x + y;
+};
+
 module.exports = (io) => {
 
   // Connection
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     
     let addr = socket.handshake.headers.origin;
+    const user = await prisma.user.findFirst({
+      where: {addr: addr}
+    });
     console.log(addr);
-    let name = "User-" + addr.substring(addr.lastIndexOf(":") + 1);
+    // if (user) {
+
+    // } else {
+    //   let mod = getPrimeECDH();
+    //   let a = randBetween(mod-2n, 2n);
+    //   let x = randBetween(mod-2n, 2n);
+    //   let y = randBetween(mod-2n, 2n);
+    //   let b = (y**2n - x**3n - a*x) % mod;
+    //   let curve = new Curve(a,b,mod);
+    //   let base = new Point(x,y);
+    //   socket.emit('start ALS', {curve, base});
+    //   let privateServer = randBetween(mod-2n, 2n);
+    //   socket.emit('public server', scalarMul(curve, base, privateServer));
+    //   let sharedPoint = null;
+    //   socket.on('public client', async (publicClient) => {
+    //     sharedPoint = scalarMul(curve, publicClient, privateServer);
+    //     const sharedKey = pointToKey(sharedPoint);
+    //     let name = "User-" + addr.substring(addr.lastIndexOf(":") + 1);
+    //     await prisma.user.create({
+    //       data: {
+    //         addr: addr,
+    //         name: name,
+    //         sharedKey: sharedKey,
+    //       }
+    //     });
+    //   });
+    // }
 
     // Send online user list
     socket.emit('get online user', User.getOnlineUser());

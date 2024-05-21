@@ -1,4 +1,5 @@
 const bn = require('bn.js');
+const bigintCryptoUtils = require('bigint-crypto-utils');
 
 const xorBlocks = (block1, block2) => {
     const result = new Uint8Array(16);
@@ -56,19 +57,33 @@ class Point {
 }
 
 const mulmod = (a, b, mod) => {
-    return a.mul(b).umod(mod);
+    a = new bn(a.toString());
+    b = new bn(b.toString());
+    mod = new bn(mod.toString());
+    let ret = a.mul(b).umod(mod);
+    return BigInt(ret.toString());
 }
 
 const addmod = (a, b, mod) => {
-    return a.add(b).umod(mod);
+    a = new bn(a.toString());
+    b = new bn(b.toString());
+    mod = new bn(mod.toString());    
+    let ret = a.add(b).umod(mod);
+    return BigInt(ret.toString());
 }
 
 const invmod = (a, mod) => {
-    return a.invm(mod);
+    a = new bn(a.toString());
+    mod = new bn(mod.toString());
+    let ret = a.invm(mod);
+    return BigInt(ret.toString());
 }
 
 const negmod = (a, mod) => {
-    return mod.sub(a);
+    a = new bn(a.toString());
+    mod = new bn(mod.toString());
+    let ret = mod.sub(a);
+    return BigInt(ret.toString());
 }
 
 /**
@@ -99,12 +114,12 @@ const addTwoPoint = (curve, p1, p2) => {
  * @returns {Point}
  */
 const scalarMul = (curve, p1, k) => {
-    let ret = new Point(-1,-1);
+    let ret = new Point(-1n,-1n);
     let a = new Point(p1.x, p1.y);
-    let b = k.clone();
-    while(b.cmp(new bn(0)) > 0) {
-        if(b.and(new bn(1)).cmp(new bn(1)) == 0) {
-            if(ret.x == -1) {
+    let b = BigInt(k);
+    while(b > 0n) {
+        if((b&(1n)) == 1n) {
+            if(ret.x == -1n) {
                 ret.x = a.x;
                 ret.y = a.y;
             } else {
@@ -112,9 +127,17 @@ const scalarMul = (curve, p1, k) => {
             }
         }
         a = addTwoPoint(curve, a, a);
-        b = b.shrn(1);
+        b >>= 1n;
     }
     return ret;   
 };
 
-export {xorBlocks, byteToStr, arrToHexStr, differentBit };
+/**
+ * 
+ * @returns {BigInt}
+ */
+function getPrimeECDH() {
+    return bigintCryptoUtils.primeSync(64);
+}
+
+module.exports = {xorBlocks, byteToStr, arrToHexStr, differentBit, Curve, Point, addTwoPoint, scalarMul, getPrimeECDH };
