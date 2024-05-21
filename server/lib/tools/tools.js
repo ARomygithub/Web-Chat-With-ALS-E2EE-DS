@@ -94,8 +94,29 @@ const negmod = (a, mod) => {
  * @returns {Point} 
  */
 const addTwoPoint = (curve, p1, p2) => {
+    if(p1.y == curve.p) {
+        return p2;
+    } else if(p2.y == curve.p) {
+        return p1;
+    }
     if(p1.x == p2.x) {
-        return Point(p1.x, curve.p);
+        if(p1.y == p2.y) {
+            if(p1.y == 0n) {
+                return Point(p1.x, curve.p);
+            } else {
+                // penggandaan biasa
+                const atas = addmod(mulmod(mulmod(3n, p1.x, curve.p), p1.x, curve.p), curve.a, curve.p);
+                const bwh = mulmod(2n, p1.y, curve.p);
+                const m = mulmod(atas, invmod(bwh, curve.p), curve.p);
+                let ret = new Point();
+                ret.x = addmod(mulmod(m, m, curve.p), negmod(addmod(p1.x, p2.x, curve.p), curve.p), curve.p);
+                ret.y = addmod(mulmod(m, addmod(p1.x, negmod(ret.x, curve.p), curve.p), curve.p), negmod(p1.y, curve.p), curve.p);
+                return ret;                
+            }
+        } else {
+            // P + (-P) = O
+            return Point(p1.x, curve.p);
+        }
     }
     const m = mulmod(addmod(p1.y, negmod(p2.y, curve.p), curve.p),
                      invmod(addmod(p1.x, negmod(p2.x, curve.p), curve.p), curve.p),
