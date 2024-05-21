@@ -18,13 +18,16 @@ module.exports = (io) => {
 
   // Connection
   io.on('connection', (socket) => {
+    
+    let addr = socket.handshake.headers.origin;
+    console.log(addr);
+    let name = "User-" + addr.substring(addr.lastIndexOf(":") + 1);
 
     // Send online user list
     socket.emit('get online user', User.getOnlineUser());
 
     let connectedUser = new User(socket.id, false);
     User.users.set(socket.id, connectedUser);
-    console.log(socket.handshake.address)
 
     // Login
     socket.on('login', (fullName) => {
