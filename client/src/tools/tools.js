@@ -29,13 +29,13 @@ function modInverse(a, m) {
 function primeFactor(num) {
     var factors = [];
 
-    while (!(num & 1)) {  
-      factors.push(2);
-      num /= 2;
+    while (!(num & 1n)) {  
+      factors.push(2n);
+      num /= 2n;
     }
     
     // 'f*f <= num' is faster than 'f <= Math.sqrt(num)'
-    for (var f = 3; f*f <= num; f += 2) {
+    for (var f = 3n; f*f <= num; f += 2n) {
       while (!(num % f)) { // remainder of 'num / f' isn't 0
         factors.push(f);
         num /= f;
@@ -73,3 +73,5 @@ const getRandPrime = (min, max) => {
     const primes = getPrimes(min, max);
     return primes[getRandNum(0, primes.length - 1)];
 };
+
+module.exports ={getRandPrime,modulo,primeFactor,modInverse };
