@@ -20,4 +20,5 @@ model User {
   addr String
   name String
   sharedKey String 
+  validDateTime DateTime
 }
