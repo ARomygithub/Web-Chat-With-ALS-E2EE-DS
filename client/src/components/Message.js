@@ -1,10 +1,11 @@
 import React, { memo } from 'react';
 
 function Primary({ data: { user, text, time } }) {
+  
   return (
-    <div className="column is-12 is-paddingless primary">
+    <div className="column is-12 has-text-right is-paddingless is-clearfix secondary">
       <strong className="is-block">{user}</strong>
-      <div className="text">
+      <div className="text is-pulled-right">
         {text}
         <time className="is-block has-text-right">{time}</time>
       </div>
@@ -22,9 +23,9 @@ function Information({ data: { user, text } }) {
 
 function Secondary({ data: { user, text, time } }) {
   return (
-    <div className="column is-12 has-text-right is-paddingless is-clearfix secondary">
+    <div className="column is-12 is-paddingless primary">
       <strong className="is-block">{user}</strong>
-      <div className="text is-pulled-right">
+      <div className="text">
         {text}
         <time className="is-block has-text-right">{time}</time>
       </div>
