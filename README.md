@@ -4,6 +4,10 @@ Web chat application developed with Express.js, Socket.IO and ReactJS, Bulma.
 
 ## How to Use
 
+For this modified version:
+1. Create Database and create .env file.
+2. use `npx prisma db push` on server folder.
+
 Make sure you have [Node.js](http://nodejs.org/) installed.
 
 ```sh
