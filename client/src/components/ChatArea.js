@@ -17,7 +17,7 @@ function ChatArea() {
     function onNewMessage(otherUser) {
       console.log("partner & other user");
       console.log(partner + ' & ' + otherUser);
-      if(partner == otherUser) {
+      if(partner === otherUser) {
         let sharedKey = localStorage.getItem('sharedKey');
         if(sharedKey) {
           let queryBody = {
@@ -41,6 +41,7 @@ function ChatArea() {
       let sharedKey = localStorage.getItem('sharedKey');
       if(sharedKey) {
         const messageArr = decryptMsg(cipherBody.encrypted, sharedKey);
+        // console.log(userId);
         dispatch({
           type: 'fetch',
           messages: messageArr.map((msg) => {
@@ -54,7 +55,7 @@ function ChatArea() {
             } else {
               return {
                 type: 'secondary',
-                user: msg.to.name,
+                user: msg.from.name,
                 text: msg.message,
                 time: formatDateTime(msg.createdAt)
               }
@@ -74,7 +75,7 @@ function ChatArea() {
       socket.off('user 1', onUser);
       socket.off('messages', onReceiveMessages);
     }
-  }, [dispatch, userId]);
+  }, [dispatch, userId, partner]);
 
   return (
     <section className="column">
