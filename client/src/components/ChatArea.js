@@ -52,7 +52,16 @@ function ChatArea() {
                 text: msg.message,
                 time: formatDateTime(msg.createdAt)
               }
-            } else {
+            }
+            else if (msg.message.includes(";;")){
+              return {
+                type: 'signed',
+                user: msg.from.name,
+                text: msg.message,
+                time: formatDateTime(msg.createdAt)
+              }
+            } 
+            else {
               return {
                 type: 'secondary',
                 user: msg.from.name,
@@ -64,16 +73,33 @@ function ChatArea() {
         });
       }
     }
+
+    const onReceiveKey= (requestKey) => {
+      // localStorage.setItem('publicKeyAlpha', requestKey.alpha);
+      // localStorage.setItem('publicKeyP',requestKey.p);
+      // localStorage.setItem('publicKeyQ',requestKey.q);
+      console.log(requestKey)
+      let key = "alpha:"+ requestKey.alpha+ "\nq:" +requestKey.q +" \np:" + requestKey.p 
+      const buffer = Uint8Array.from(key, c => c.charCodeAt(0));
+      const file = new Blob([buffer], { type:"text/plain"});
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(file);
+      link.download = "schnorrpub.scpub";
+      link.click();
+    } 
     socket.on('user 1', onUser);
     socket.on('messages', onReceiveMessages);
 
     // New message
     socket.on('new message', onNewMessage);
 
+    socket.on('receive key', onReceiveKey);
+
     return () => {
       socket.off('new message', onNewMessage);
       socket.off('user 1', onUser);
       socket.off('messages', onReceiveMessages);
+      socket.off('receive key', onReceiveKey);
     }
   }, [dispatch, userId, partner]);
 

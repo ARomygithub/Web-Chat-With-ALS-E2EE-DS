@@ -4,6 +4,7 @@ const prisma = new PrismaClient()
 const { getPrimeECDH, Curve, Point, scalarMul } = require('../lib/tools/tools.js');
 const { randBetween } = require('bigint-crypto-utils');
 const { encryptMsg, decryptMsg } = require('../lib/mode/cbc.js');
+const { generateKey } = require('../lib/algorithm/SchnorrDSS.js');
 
 const pointToKey = (point) => {
   let x = point.x.toString(16).padStart(16, '0');
@@ -78,6 +79,11 @@ const setAfterHandshake = (io, socket, user) => {
     }).then((messages) => {
       socket.emit('messages', encryptMsg(messages, user.sharedKey)); //array
     });
+  });
+  socket.on('request key',(key)=>{
+    requestKey = generateKey();
+    console.log("send key")
+    socket.emit('receive key',requestKey)
   });
     // Send online user list
     // socket.emit('get online user', User.getOnlineUser());
