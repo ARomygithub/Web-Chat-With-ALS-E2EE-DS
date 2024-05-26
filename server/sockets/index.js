@@ -11,59 +11,113 @@ const pointToKey = (point) => {
   return x + y;
 };
 
+/*
+msg body
+{
+  "to": user_id,
+  "message": content,
+}
+
+get msg
+{
+  "with": user_id
+}
+*/
+
 const setAfterHandshake = (io, socket, user) => {
   socket.join('room-'+user.id);
   const userBody = {
     "id": user.id,
     "name": user.name
   }
-  socket.emit('user', encryptMsg(userBody, user.sharedKey));
+  let cipherBody = encryptMsg(userBody, user.sharedKey);
+  socket.emit('user', cipherBody);
 
-    // Send online user list
-    socket.emit('get online user', User.getOnlineUser());
-
-    let connectedUser = new User(socket.id, false);
-    User.users.set(socket.id, connectedUser);
-
-    // Login
-    socket.on('login', (fullName) => {
-
-      // Check user
-      let isUsing = false;
-      User.users.forEach((key) => {
-        if (key.fullname == fullName) {
-          isUsing = true;
+  socket.on('send message', async (cipherBody)=> {
+    const msgBody = decryptMsg(cipherBody.encrypted);
+    let receiver = await prisma.user.findFirst({
+      where: {id: msgBody.to}
+    })
+    if(receiver) {
+      let msg = await prisma.message.create({
+        data: {
+          fromId: user.id,
+          toId: receiver.id,
+          message: msgBody.message,
         }
       });
-      socket.emit('check user', isUsing);
-
-      // Add User
-      if (User.users.has(socket.id) && !isUsing) {
-        let currentUser = User.users.get(socket.id);
-        currentUser.isLogin = true;
-        currentUser.fullname = fullName;
-        io.emit('new user', fullName);
+      console.log(msg);
+      io.to('room-'+receiver.id).emit('new message', user.id);
+    }
+  });
+  socket.on('get message', (cipherBody) => {
+    const queryBody = decryptMsg(cipherBody.encrypted);
+    prisma.message.findMany({
+      where: {
+        OR: [
+          {
+            fromId: user.id,
+            toId: queryBody.with
+          },
+          {
+            fromId: queryBody.with,
+            toId: user.id
+          }
+        ]
+      },
+      orderBy: {
+        createdAt: 'asc'
       }
-
+    }).then((messages) => {
+      socket.emit('messages', encryptMsg(messages, user.sharedKey)); //array
     });
+  });
+    // Send online user list
+    // socket.emit('get online user', User.getOnlineUser());
 
-    // Send message
-    socket.on('send message', (message) => {
-      socket.broadcast.emit('new message', message);
-    });
+    // let connectedUser = new User(socket.id, false);
+    // User.users.set(socket.id, connectedUser);
 
-    // Disconnect
-    socket.on('disconnect', (reason) => {
 
-      let currentUser = User.users.get(socket.id);
-      if (currentUser.isLogin) {
-        io.emit('exit user', currentUser.fullname);
-      }
+    // // Login
+    // socket.on('login', (fullName) => {
 
-      User.users.delete(socket.id);
-      // Send new online user list to all online user
-      io.emit('get online user', User.getOnlineUser());
-    });
+    //   // Check user
+    //   let isUsing = false;
+    //   User.users.forEach((key) => {
+    //     if (key.fullname == fullName) {
+    //       isUsing = true;
+    //     }
+    //   });
+    //   socket.emit('check user', isUsing);
+
+    //   // Add User
+    //   if (User.users.has(socket.id) && !isUsing) {
+    //     let currentUser = User.users.get(socket.id);
+    //     currentUser.isLogin = true;
+    //     currentUser.fullname = fullName;
+    //     io.emit('new user', fullName);
+    //   }
+
+    // });
+
+    // // Send message
+    // socket.on('send message', (message) => {
+    //   socket.broadcast.emit('new message', message);
+    // });
+
+    // // Disconnect
+    // socket.on('disconnect', (reason) => {
+
+    //   let currentUser = User.users.get(socket.id);
+    //   if (currentUser.isLogin) {
+    //     io.emit('exit user', currentUser.fullname);
+    //   }
+
+    //   User.users.delete(socket.id);
+    //   // Send new online user list to all online user
+    //   io.emit('get online user', User.getOnlineUser());
+    // });
 };
 
 module.exports = (io) => {
@@ -99,14 +153,24 @@ module.exports = (io) => {
         let now = new Date();
         let validDate = new Date();
         validDate.setTime(now.getTime() + 1000*60*60*24*7);
-        user = await prisma.user.create({
-          data: {
-            addr: addr,
-            name: name,
-            sharedKey: sharedKey,
-            validDateTime: validDate
-          }
-        });
+        if(user) {
+          user = await prisma.user.update({
+            where: {id: user.id},
+            data: {
+              sharedKey: sharedKey,
+              validDateTime: validDate
+            }
+          });
+        } else {
+          user = await prisma.user.create({
+            data: {
+              addr: addr,
+              name: name,
+              sharedKey: sharedKey,
+              validDateTime: validDate
+            }
+          });
+        }
         console.log(user);
         setAfterHandshake(io, socket, user);
       });

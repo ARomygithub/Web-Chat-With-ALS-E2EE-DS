@@ -21,4 +21,17 @@ model User {
   name String
   sharedKey String 
   validDateTime DateTime
+  sent Message[] @relation("sent")
+  received Message[] @relation("received")
+}
+
+model Message {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  from User @relation("sent", fields: [fromId], references: [id])
+  fromId String
+  to User @relation("received", fields: [toId], references: [id])
+  toId String
+  message String  
 }

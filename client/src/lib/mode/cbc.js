@@ -56,6 +56,7 @@ const encryptMsg = (msg, key) => {
     let iv = new Uint8Array(16);
     iv = byteToStr(iv);
     msg = JSON.stringify(msg);
+    msg = new Uint8Array(msg.split("").map(x => x.charCodeAt()));
     let cipher = encryptCBC(msg, key, iv);
     return {
         "encrypted": cipher,
@@ -65,6 +66,7 @@ const encryptMsg = (msg, key) => {
 const decryptMsg = (msg, key) => {
     let iv = new Uint8Array(16);
     iv = byteToStr(iv);
+    msg = new Uint8Array(msg.split("").map(x => x.charCodeAt()));    
     let plain = decryptCBC(msg, key, iv);
     return JSON.parse(plain);
 };
