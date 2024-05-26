@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useMessagesDispatch, usePartner } from '../contexts/MessagesContext';
 import socket from '../Socket';
 import { encryptMsg } from '../lib/mode/cbc';
+import {e2eeCurve, base} from '../E2EE/constant';
 
 function MessageForm({ fullName }) {
   const textareaRef = useRef(null);
@@ -17,7 +18,9 @@ function MessageForm({ fullName }) {
 
   const handleSubmit = () => {
     let textarea = textareaRef.current;
-
+    console.log(e2eeCurve.a);
+    console.log(base.x);
+    console.log(base.y);
     let sharedKey = localStorage.getItem('sharedKey');
     if(sharedKey) {
       let msgBody = {
