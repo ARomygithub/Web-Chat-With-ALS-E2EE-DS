@@ -4,6 +4,7 @@ import socket from '../Socket';
 import MessageForm from './MessageForm';
 import MessageList from './MessageList';
 import { encryptMsg, decryptMsg } from '../lib/mode/cbc';
+const { formatDateTime } = require('../lib/tools/tools.js');
 
 function ChatArea() {
   const [userName, setUserName] = useState('');
@@ -48,14 +49,14 @@ function ChatArea() {
                 type: 'primary',
                 user: msg.from.name,
                 text: msg.message,
-                time: msg.createdAt
+                time: formatDateTime(msg.createdAt)
               }
             } else {
               return {
                 type: 'secondary',
                 user: msg.to.name,
                 text: msg.message,
-                time: msg.createdAt
+                time: formatDateTime(msg.createdAt)
               }
             }
           })

@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer } from 'react';
+import { formatDateTime } from '../lib/tools/tools';
 
 const MessageContext = createContext(null);
 const MessageDispatchContext = createContext(null);
@@ -28,7 +29,7 @@ function messagesReducer(messages, action) {
     case 'newmessage':
       return [...messages, {
         ...action.message,
-        time: `${new Date().getHours()}:${new Date().getMinutes()}`
+        time: formatDateTime(new Date())
       }]
     case 'fetch':
       return action.messages;

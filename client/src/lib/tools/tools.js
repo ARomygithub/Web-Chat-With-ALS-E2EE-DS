@@ -161,4 +161,14 @@ function getPrimeECDH() {
     return bigintCryptoUtils.primeSync(64);
 }
 
-module.exports = {xorBlocks, byteToStr, arrToHexStr, differentBit, Curve, Point, addTwoPoint, scalarMul, getPrimeECDH };
+function formatDateTime(dateTime) {
+    dateTime = new Date(dateTime);
+    let year = dateTime.getFullYear();
+    let month = dateTime.getMonth() + 1;
+    let day = dateTime.getDate();
+    let hour = dateTime.getHours();
+    let minute = dateTime.getMinutes();
+    return `${year}-${month}-${day} ${hour}:${minute}`;
+} 
+
+module.exports = {xorBlocks, byteToStr, arrToHexStr, differentBit, Curve, Point, addTwoPoint, scalarMul, getPrimeECDH, formatDateTime };
