@@ -35,7 +35,7 @@ function Secondary({ data: { user, text, time } }) {
 
 
 function SecondarySigned({ data: { user, text, time } }) {
-  const [verify,setVerify] = useState(false);
+  const [verify,setVerify] = useState(0);
   const [key,setKey] = useState("");
   const [requestKey, setRequestKey] = useState("");
   
@@ -64,8 +64,11 @@ function SecondarySigned({ data: { user, text, time } }) {
       return 
     }
     let globalKey =parseKey(requestKey)
-    setVerify(verifySignature(globalKey[0],key[3],key[2],key[1],globalKey[2],key[0]))
-    
+    if(verifySignature(globalKey[0],key[3],key[2],key[1],globalKey[2],key[0])) {
+      setVerify(1)
+    } else {
+      setVerify(-1)
+    }
   }
   return (
     <div className="column is-12 is-paddingless primary">
@@ -78,6 +81,8 @@ function SecondarySigned({ data: { user, text, time } }) {
           <label>Public Key Signature: </label>
           <input type="text" value={key} onInput={(event)=>setKey(event.target.value)}/>
           <input className="button" type="submit" value="Verify" />
+          {verify===1 && <i className="fa-solid fa-check" style={{color: "#63E6BE"}}></i>}
+          {verify===-1 && <i className="fa-solid fa-xmark" style={{color: "#db380f"}}></i>}
         </form>
           
       </div>

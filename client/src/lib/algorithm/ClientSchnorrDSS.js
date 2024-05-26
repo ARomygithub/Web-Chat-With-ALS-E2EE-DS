@@ -29,9 +29,14 @@ const createDigitalSignature =(alpha,p,q,message,s,v) =>{
 }
 
 const verifySignature=(alpha,v,y,e,p,message) =>{
+    alpha = BigInt(alpha)
+    v = BigInt(v)
+    y = BigInt(y)
+    p = BigInt(p)
+
     let xBar = (powMod(alpha,y,p) * powMod(v,BigInt("0x"+e),p))% p
     let e2 =  new Hashes.SHA1().hex(message+xBar)
     console.log(e2)
-    return e == e2
+    return e === e2
 }
 module.exports ={createPublicPrivateKey,createDigitalSignature,verifySignature };
