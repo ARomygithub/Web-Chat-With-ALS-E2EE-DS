@@ -1,73 +1,85 @@
 import { useEffect, useState } from 'react';
-import { useMessages, useMessagesDispatch } from '../contexts/MessagesContext';
+import { useMessages, useMessagesDispatch, usePartner } from '../contexts/MessagesContext';
 import socket from '../Socket';
-import LoginForm from './LoginForm';
 import MessageForm from './MessageForm';
 import MessageList from './MessageList';
+import { encryptMsg, decryptMsg } from '../lib/mode/cbc';
 
 function ChatArea() {
-  const [isLogin, setIsLogin] = useState(false);
   const [userName, setUserName] = useState('');
   const messages = useMessages();
   const dispatch = useMessagesDispatch();
-
+  const [userId, setUserId] = useState(null);
+  const partner = usePartner();
   useEffect(() => {
 
-    function onNewUser(newUser) {
-      dispatch({
-        type: 'newmessage',
-        message: {
-          type: 'information',
-          user: newUser,
-          text: 'logged in.'
+    function onNewMessage(otherUser) {
+      console.log("partner & other user");
+      console.log(partner + ' & ' + otherUser);
+      if(partner == otherUser) {
+        let sharedKey = localStorage.getItem('sharedKey');
+        if(sharedKey) {
+          let queryBody = {
+            with: partner
+          }
+          socket.emit('get message', encryptMsg(queryBody, sharedKey));
         }
-      })
+      }
     }
 
-    function onExitUser(exitUser) {
-      dispatch({
-        type: 'newmessage',
-        message: {
-          type: 'information',
-          user: exitUser,
-          text: 'left.'
-        }
-      })
+    const onUser = (cipherBody) => {
+      let sharedKey = localStorage.getItem('sharedKey');
+      if(sharedKey) {
+        const userBody = decryptMsg(cipherBody.encrypted, sharedKey);
+        setUserName(userBody.name);
+        setUserId(userBody.id);
+      }
     }
 
-    function onNewMessage(message) {
-      dispatch({
-        type: 'newmessage',
-        message: {
-          type: 'secondary',
-          user: message.user,
-          text: message.text
-        }
-      })
+    const onReceiveMessages = (cipherBody) => {
+      let sharedKey = localStorage.getItem('sharedKey');
+      if(sharedKey) {
+        const messageArr = decryptMsg(cipherBody.encrypted, sharedKey);
+        dispatch({
+          type: 'fetch',
+          messages: messageArr.map((msg) => {
+            if(msg.fromId === userId) {
+              return {
+                type: 'primary',
+                user: msg.from.name,
+                text: msg.message,
+                time: msg.createdAt
+              }
+            } else {
+              return {
+                type: 'secondary',
+                user: msg.to.name,
+                text: msg.message,
+                time: msg.createdAt
+              }
+            }
+          })
+        });
+      }
     }
-
-    // New user
-    socket.on('new user', onNewUser);
-
-    // Exit user
-    socket.on('exit user', onExitUser);
+    socket.on('user 1', onUser);
+    socket.on('messages', onReceiveMessages);
 
     // New message
     socket.on('new message', onNewMessage);
 
     return () => {
-      socket.off('new user', onNewUser);
-      socket.off('exit user', onExitUser);
       socket.off('new message', onNewMessage);
+      socket.off('user 1', onUser);
+      socket.off('messages', onReceiveMessages);
     }
-  }, [dispatch]);
+  }, [dispatch, userId]);
 
   return (
     <section className="column">
       <MessageList messages={messages} />
       <div className="columns is-mobile has-background-white is-paddingless has-text-centered messageform">
-        {!isLogin && <LoginForm setLogin={setIsLogin} setUserName={setUserName} />}
-        {isLogin && <MessageForm fullName={userName} />}
+        <MessageForm fullName={userName} />
       </div>
     </section>
   );

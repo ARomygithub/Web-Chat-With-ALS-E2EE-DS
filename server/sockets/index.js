@@ -31,10 +31,12 @@ const setAfterHandshake = (io, socket, user) => {
     "name": user.name
   }
   let cipherBody = encryptMsg(userBody, user.sharedKey);
-  socket.emit('user', cipherBody);
+  socket.emit('user 1', cipherBody);
+  socket.emit('user 2', cipherBody);
 
   socket.on('send message', async (cipherBody)=> {
-    const msgBody = decryptMsg(cipherBody.encrypted);
+    console.log(cipherBody);
+    const msgBody = decryptMsg(cipherBody.encrypted, user.sharedKey);
     let receiver = await prisma.user.findFirst({
       where: {id: msgBody.to}
     })
@@ -51,7 +53,8 @@ const setAfterHandshake = (io, socket, user) => {
     }
   });
   socket.on('get message', (cipherBody) => {
-    const queryBody = decryptMsg(cipherBody.encrypted);
+    console.log(cipherBody);
+    const queryBody = decryptMsg(cipherBody.encrypted, user.sharedKey);
     prisma.message.findMany({
       where: {
         OR: [
@@ -64,6 +67,10 @@ const setAfterHandshake = (io, socket, user) => {
             toId: user.id
           }
         ]
+      },
+      include: {
+        from: true,
+        to: true
       },
       orderBy: {
         createdAt: 'asc'

@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { useMessagesDispatch } from '../contexts/MessagesContext';
+import { useMessagesDispatch, usePartner } from '../contexts/MessagesContext';
 import socket from '../Socket';
+import { encryptMsg } from '../lib/mode/cbc';
 
 function MessageForm({ fullName }) {
   const textareaRef = useRef(null);
   const emojiRef = useRef(null);
   const dispatch = useMessagesDispatch();
+  const partner = usePartner();
 
   const checkSubmit = (e) => {
     if ((e.ctrlKey || e.metaKey) && (e.keyCode === 13 || e.keyCode === 10)) {
@@ -16,19 +18,24 @@ function MessageForm({ fullName }) {
   const handleSubmit = () => {
     let textarea = textareaRef.current;
 
-    socket.emit('send message', {
-      user: fullName,
-      text: textarea.value
-    });
-
-    dispatch({
-      type: 'newmessage',
-      message: {
-        type: 'primary',
-        user: fullName,
-        text: textarea.value
+    let sharedKey = localStorage.getItem('sharedKey');
+    if(sharedKey) {
+      let msgBody = {
+          to: partner,
+          message: textarea.value
       }
-    });
+      console.log(msgBody);
+      socket.emit('send message', encryptMsg(msgBody, sharedKey));
+  
+      dispatch({
+        type: 'newmessage',
+        message: {
+          type: 'primary',
+          user: fullName,
+          text: textarea.value
+        }
+      });
+    }
 
     textarea.value = '';
   }

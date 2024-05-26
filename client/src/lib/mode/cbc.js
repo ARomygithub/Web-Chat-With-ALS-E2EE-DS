@@ -68,6 +68,11 @@ const decryptMsg = (msg, key) => {
     iv = byteToStr(iv);
     msg = new Uint8Array(msg.split("").map(x => x.charCodeAt()));    
     let plain = decryptCBC(msg, key, iv);
+    let idx = plain.length-1; 
+    while(idx>=0 && plain.charCodeAt(idx) === 0){
+        idx--;
+    }
+    plain = plain.slice(0,idx+1);    
     return JSON.parse(plain);
 };
 

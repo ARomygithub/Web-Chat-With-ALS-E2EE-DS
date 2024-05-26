@@ -30,9 +30,42 @@ function messagesReducer(messages, action) {
         ...action.message,
         time: `${new Date().getHours()}:${new Date().getMinutes()}`
       }]
+    case 'fetch':
+      return action.messages;
     default:
       throw Error('Unknown action: ' + action.type);
   }
 }
 
 const initialMessages = [];
+const initialPartner = '';
+
+const PartnerContext = createContext(null);
+const PartnerDispatchContext = createContext(null);
+
+function partnerReducer(partner, action) {
+  switch (action.type) {
+    case 'set':
+      return action.partner;
+    default:
+      throw Error('Unknown action: ' + action.type);
+  }
+}
+export function usePartner() {
+  return useContext(PartnerContext);
+}
+export function usePartnerDispatch() {
+  return useContext(PartnerDispatchContext);
+}
+
+export function PartnerProvider({ children }) {
+  const [partner, dispatch] = useReducer(partnerReducer, initialPartner);
+
+  return (
+    <PartnerContext.Provider value={partner}>
+      <PartnerDispatchContext.Provider value={dispatch}>
+        {children}
+      </PartnerDispatchContext.Provider>
+    </PartnerContext.Provider>
+  );
+}

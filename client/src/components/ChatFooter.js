@@ -6,7 +6,7 @@ import { decryptMsg } from '../lib/mode/cbc';
 function ChatFooter() {
   const [id, setId] = useState(null);
   useEffect(() => {
-    socket.on('user', (cipherBody) => {
+    socket.on('user 2', (cipherBody) => {
       let sharedKey = localStorage.getItem('sharedKey');
       if(sharedKey) {
         console.log(cipherBody.encrypted);
